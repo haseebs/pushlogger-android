@@ -32,6 +32,10 @@ class MainActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshListener {
         refreshSwipe.setOnRefreshListener(this)
 
         requestQueue = Volley.newRequestQueue(this)
+
+        listView.setOnItemClickListener { _, _, position, _ ->
+            startActivity(LogActivity.newChannelIntent(this, channelList[position]))
+        }
     }
 
     override fun onRefresh() {
@@ -51,15 +55,11 @@ class MainActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshListener {
                 },
                 Response.ErrorListener { error ->
                     refreshSwipe.isRefreshing = false
-                    infoText.text = error.message + "\n Swipe down to try again"
+                    infoText.text = "${error.message}\nSwipe down to try again"
                     infoText.visibility = View.VISIBLE
                 }
         )
         requestQueue.add(jsonArrayRequest)
-    }
-
-    fun refreshBtnHandler() {
-        getChannelsList()
     }
 
     private fun updateListView(channelJSONArray: JSONArray) {
