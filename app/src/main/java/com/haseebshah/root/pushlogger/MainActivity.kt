@@ -1,10 +1,10 @@
 package com.haseebshah.root.pushlogger
 
 import android.os.Bundle
+import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.app.AppCompatActivity
 import android.view.View
 import android.widget.ArrayAdapter
-import android.widget.Button
 import android.widget.ListView
 import android.widget.TextView
 import com.android.volley.Request
@@ -14,9 +14,9 @@ import com.android.volley.toolbox.JsonArrayRequest
 import com.android.volley.toolbox.Volley
 import org.json.JSONArray
 
-class MainActivity : AppCompatActivity() {
-    lateinit var refreshButton: Button
-    lateinit var resultArea: TextView
+class MainActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshListener {
+    lateinit var refreshSwipe: SwipeRefreshLayout
+    lateinit var infoText: TextView
     lateinit var requestQueue : RequestQueue
     lateinit var listView: ListView
     var channelList: ArrayList<String> = ArrayList()
@@ -27,8 +27,15 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         listView = findViewById(R.id.lv)
-        refreshButton = findViewById(R.id.refresh_btn)
+        infoText = findViewById(R.id.tv)
+        refreshSwipe = findViewById(R.id.refresh_swipe)
+        refreshSwipe.setOnRefreshListener(this)
+
         requestQueue = Volley.newRequestQueue(this)
+    }
+
+    override fun onRefresh() {
+        getChannelsList()
     }
 
     private fun getChannelsList() {
@@ -39,17 +46,19 @@ class MainActivity : AppCompatActivity() {
                 "",
                 Response.Listener { response: JSONArray ->
                     updateListView(response)
-                    //resultArea.text = response.toString()
-                    //resultArea.text = response.getJSONObject(1).getString("Channel Name")
+                    refreshSwipe.isRefreshing = false
+                    infoText.visibility = View.INVISIBLE
                 },
                 Response.ErrorListener { error ->
-                    resultArea.text = error.message
+                    refreshSwipe.isRefreshing = false
+                    infoText.text = error.message + "\n Swipe down to try again"
+                    infoText.visibility = View.VISIBLE
                 }
         )
         requestQueue.add(jsonArrayRequest)
     }
 
-    fun refreshBtnHandler(v: View) {
+    fun refreshBtnHandler() {
         getChannelsList()
     }
 
