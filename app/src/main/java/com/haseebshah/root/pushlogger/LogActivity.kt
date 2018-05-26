@@ -17,12 +17,14 @@ import org.json.JSONArray
 class LogActivity : AppCompatActivity() {
 
     lateinit var url: String
+    lateinit var baseUrl: String
     lateinit var tv: TextView
     private lateinit var requestQueue : RequestQueue
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_log)
+        baseUrl = "http://puushlogger.herokuapp.com/"
         url = intent.extras.getString(CHANNEL_URL)
         title = intent.extras.getString(CHANNEL_NAME)
 
@@ -48,7 +50,7 @@ class LogActivity : AppCompatActivity() {
         var logs = ""
         for (i in 0 until logJSONArray.length()){
             logs += logJSONArray.getJSONObject(i).getString("Timestamp") + ":  "
-            logs += logJSONArray.getJSONObject(i).getString("Message") + "\n"
+            logs += logJSONArray.getJSONObject(i).getString("Message") + "\n\n"
         }
         tv.text = logs
     }
@@ -68,7 +70,36 @@ class LogActivity : AppCompatActivity() {
         requestQueue.add(jsonArrayRequest)
     }
 
-    fun refreshBtnHandler(v: View){
+    private fun deleteChannel() {
+        val deleteUrl = "${baseUrl}delete/$title"
+        val jsonArrayRequest = JsonArrayRequest(
+                Request.Method.GET,
+                deleteUrl,
+                "",
+                Response.Listener { response: JSONArray ->
+                    returnToMain()
+                },
+                Response.ErrorListener { error ->
+                    tv.text = error.message
+                    returnToMain()
+                }
+        )
+        requestQueue.add(jsonArrayRequest)
+    }
+
+    private fun returnToMain() {
+        val intent = Intent(this, MainActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        startActivity(intent)
+    }
+
+    fun refreshBtnHandler(v: View) {
         getLogs()
     }
+
+    fun deleteBtnHandler(v: View) {
+        deleteChannel()
+    }
+
+
 }
